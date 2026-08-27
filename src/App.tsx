@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { LogChart } from './components/LogChart';
 import { FieldSelector } from './components/FieldSelector';
 import { parseForscanCsv } from './utils/parseCsv';
@@ -11,6 +11,7 @@ const SAMPLE_FILES = [
 ];
 
 function App() {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [log, setLog] = useState<ParsedLog | null>(null);
   const [showMisfire, setShowMisfire] = useState(true);
   const [selectedColumnKeys, setSelectedColumnKeys] = useState<Set<string>>(new Set());
@@ -181,27 +182,36 @@ function App() {
               charts automatically.
             </p>
 
+            <input
+              ref={fileInputRef}
+              className="app__file-input"
+              type="file"
+              accept=".csv,text/csv"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) void handleAppFile(file);
+                event.target.value = '';
+              }}
+            />
+
             <div className="app__sample-actions">
               {SAMPLE_FILES.map((sample) => (
                 <button key={sample.path} onClick={() => void loadSample(sample.path, sample.label)}>
                   {sample.label}
                 </button>
               ))}
-              <label className="app__upload-button">
+              <button type="button" onClick={() => fileInputRef.current?.click()}>
                 Upload CSV
-                <input
-                  type="file"
-                  accept=".csv,text/csv"
-                  onChange={(event) => {
-                    const file = event.target.files?.[0];
-                    if (file) void handleAppFile(file);
-                    event.target.value = '';
-                  }}
-                />
-              </label>
+              </button>
             </div>
 
-            <div className="app__empty-dropzone">Drop a CSV file anywhere on the app to import it.</div>
+            <button
+              type="button"
+              className="app__empty-dropzone"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              Drop a CSV file anywhere on the app to import it, or tap here to choose one.
+            </button>
           </div>
         </div>
       )}
