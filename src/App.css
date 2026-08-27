@@ -283,7 +283,8 @@
   margin-top: 1.5rem;
 }
 
-.app__sample-actions button {
+.app__sample-actions button,
+.app__upload-button {
   appearance: none;
   border: 1px solid var(--border);
   background: var(--surface-raised);
@@ -295,10 +296,27 @@
   transition: border-color 0.15s ease, transform 0.15s ease;
 }
 
-.app__sample-actions button:hover {
+.app__sample-actions button:hover,
+.app__upload-button:hover {
   border-color: var(--accent);
   color: var(--accent);
   transform: translateY(-1px);
+}
+
+.app__upload-button input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+.app__upload-button:focus-within {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .app__empty-dropzone {

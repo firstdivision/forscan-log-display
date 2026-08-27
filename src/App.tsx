@@ -66,8 +66,17 @@ function App() {
   };
 
   const handleAppFile = async (file: File) => {
-    const text = await file.text();
-    handleLoad(file.name, text);
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      setError('Invalid file type. Please choose a CSV file.');
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      handleLoad(file.name, text);
+    } catch {
+      setError('The selected CSV file could not be read.');
+    }
   };
 
   const handleAppDrop = async (event: React.DragEvent<HTMLDivElement>) => {
@@ -162,7 +171,7 @@ function App() {
         </>
       )}
 
-      {!log && !error && (
+      {!log && (
         <div className={`app__empty${isDraggingOverApp ? ' app__empty--active' : ''}`}>
           <div className="app__empty-card">
             <p className="app__eyebrow">Start here</p>
@@ -178,6 +187,18 @@ function App() {
                   {sample.label}
                 </button>
               ))}
+              <label className="app__upload-button">
+                Upload CSV
+                <input
+                  type="file"
+                  accept=".csv,text/csv"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    if (file) void handleAppFile(file);
+                    event.target.value = '';
+                  }}
+                />
+              </label>
             </div>
 
             <div className="app__empty-dropzone">Drop a CSV file anywhere on the app to import it.</div>

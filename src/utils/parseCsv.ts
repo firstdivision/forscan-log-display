@@ -26,6 +26,20 @@ export function parseForscanCsv(fileName: string, csvText: string): ParsedLog {
   if (!headerRow) {
     throw new Error('CSV file has no header row');
   }
+  if (headerRow.length < 2) {
+    throw new Error('Invalid FORScan CSV: the file must be semicolon-delimited');
+  }
+  if (headerRow.some((header) => header.trim() === '')) {
+    throw new Error('Invalid FORScan CSV: one or more column headers are missing');
+  }
+  if (dataRows.length === 0) {
+    throw new Error('Invalid FORScan CSV: the file contains no data rows');
+  }
+
+  const invalidRowIndex = dataRows.findIndex((row) => row.length !== headerRow.length);
+  if (invalidRowIndex !== -1) {
+    throw new Error(`Invalid FORScan CSV: row ${invalidRowIndex + 2} has the wrong number of fields`);
+  }
 
   const columns: LogColumn[] = headerRow.map((header, idx) => {
     const { label, unit } = splitHeader(header);
