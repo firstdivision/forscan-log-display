@@ -13,6 +13,27 @@ const SAMPLE_FILES = [
   { label: 'Sample 4', path: 'data/sample4.csv' },
 ];
 
+type LoadingState = {
+  fileName: string;
+  stage: 'reading' | 'parsing' | 'preparing';
+  progress: number | null;
+};
+
+const waitForPaint = () =>
+  new Promise<void>((resolve) => requestAnimationFrame(() => window.setTimeout(resolve, 0)));
+
+function readFileWithProgress(file: File, onProgress: (progress: number) => void): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onprogress = (event) => {
+      if (event.lengthComputable) onProgress((event.loaded / event.total) * 100);
+    };
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error ?? new Error('The selected file could not be read.'));
+    reader.readAsText(file);
+  });
+}
+
 function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [log, setLog] = useState<ParsedLog | null>(null);
@@ -22,6 +43,7 @@ function App() {
   const [viewMode, setViewMode] = useState<'stacked' | 'combined'>('stacked');
   const [scaleMode, setScaleMode] = useState<CombinedScaleMode>('normalized');
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<LoadingState | null>(null);
   const [isDraggingOverApp, setIsDraggingOverApp] = useState(false);
   const [page, setPage] = useState<'home' | 'about'>(() =>
     window.location.hash === '#about' ? 'about' : 'home',
@@ -86,24 +108,43 @@ function App() {
     };
   }, [misfireSpans, selectedMisfireIndex, times]);
 
-  const handleLoad = (fileName: string, csvText: string) => {
+  const handleLoad = async (fileName: string, csvText: string) => {
+    setLoading({ fileName, stage: 'parsing', progress: null });
+    await waitForPaint();
+
     try {
       const parsedLog = parseForscanCsv(fileName, csvText);
+      setLoading({ fileName, stage: 'preparing', progress: null });
       setLog(parsedLog);
       setSelectedColumnKeys(
         new Set(parsedLog.columns.filter((column) => column.isNumeric && column.key !== parsedLog.timeKey).map((column) => column.key)),
       );
       setSelectedMisfireIndex(null);
       setError(null);
+      await waitForPaint();
+      await waitForPaint();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to parse CSV file');
+    } finally {
+      setLoading(null);
     }
   };
 
   const loadSample = async (path: string, label: string) => {
-    const response = await fetch(`${import.meta.env.BASE_URL}${path}`);
-    const text = await response.text();
-    handleLoad(label, text);
+    setError(null);
+    setLoading({ fileName: label, stage: 'reading', progress: null });
+    await waitForPaint();
+
+    try {
+      const response = await fetch(`${import.meta.env.BASE_URL}${path}`);
+      if (!response.ok) throw new Error(`Could not download ${label}.`);
+      const text = await response.text();
+      setLoading({ fileName: label, stage: 'reading', progress: 100 });
+      await handleLoad(label, text);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : `Could not load ${label}.`);
+      setLoading(null);
+    }
   };
 
   const handleAppFile = async (file: File) => {
@@ -113,10 +154,16 @@ function App() {
     }
 
     try {
-      const text = await file.text();
-      handleLoad(file.name, text);
+      setError(null);
+      setLoading({ fileName: file.name, stage: 'reading', progress: 0 });
+      await waitForPaint();
+      const text = await readFileWithProgress(file, (progress) => {
+        setLoading({ fileName: file.name, stage: 'reading', progress });
+      });
+      await handleLoad(file.name, text);
     } catch {
       setError('The selected CSV file could not be read.');
+      setLoading(null);
     }
   };
 
@@ -139,6 +186,7 @@ function App() {
     setSelectedColumnKeys(new Set());
     setViewMode('stacked');
     setError(null);
+    setLoading(null);
     setIsDraggingOverApp(false);
   };
 
@@ -171,6 +219,48 @@ function App() {
           Turn ForScan CSV logs into clear, interactive charts. <a href="#about">Read more...</a>
         </p>
       </header>
+
+      {loading && (
+        <div className="app__loading-backdrop" role="status" aria-live="polite" aria-busy="true">
+          <div className="app__loading-card">
+            <div className="app__loading-heading">
+              <span className="app__loading-spinner" aria-hidden="true" />
+              <div>
+                <strong>
+                  {loading.stage === 'reading'
+                    ? 'Loading file'
+                    : loading.stage === 'parsing'
+                      ? 'Parsing and detecting events'
+                      : 'Preparing charts'}
+                </strong>
+                <span>{loading.fileName}</span>
+              </div>
+              {loading.progress !== null && <b>{Math.round(loading.progress)}%</b>}
+            </div>
+            <div
+              className={`app__loading-track${loading.progress === null ? ' app__loading-track--indeterminate' : ''}`}
+              aria-hidden="true"
+            >
+              <span style={loading.progress === null ? undefined : { width: `${loading.progress}%` }} />
+            </div>
+            <ol className="app__loading-steps">
+              <li className={loading.stage === 'reading' ? 'is-active' : 'is-complete'}>Load file</li>
+              <li
+                className={
+                  loading.stage === 'parsing'
+                    ? 'is-active'
+                    : loading.stage === 'preparing'
+                      ? 'is-complete'
+                      : ''
+                }
+              >
+                Parse data
+              </li>
+              <li className={loading.stage === 'preparing' ? 'is-active' : ''}>Build charts</li>
+            </ol>
+          </div>
+        </div>
+      )}
 
       {page === 'home' && error && <p className="app__error">{error}</p>}
 

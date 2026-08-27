@@ -149,8 +149,8 @@ export function LogChart({ column, colorIndex, times, values, misfireSpans, show
             itemStyle: { color },
             areaStyle: {
               color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: `${color}33` },
-                { offset: 1, color: `${color}00` },
+                { offset: 0, color: echarts.color.modifyAlpha(color, 0.2) },
+                { offset: 1, color: echarts.color.modifyAlpha(color, 0) },
               ]),
             },
             emphasis: { disabled: true },
