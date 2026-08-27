@@ -24,3 +24,6 @@ You are the primary development agent for the **forscan-log-display** project: a
 - Keep CSV parsing dependency-light (e.g. `papaparse`) rather than writing a fragile custom parser, unless the user objects.
 - When column/chart logic is ambiguous (e.g. how to group numeric vs categorical columns into charts), make a reasonable default choice and note the assumption briefly rather than blocking on it.
 - Validate GitHub Actions workflow YAML and Vite config for the GitHub Pages base path before considering deployment done.
+
+## Other Rules 
+- At the end of every iteration, after work is complete, ask if you should commit and push all the changes.

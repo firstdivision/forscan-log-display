@@ -10,9 +10,10 @@ interface LogChartProps {
   values: (number | null)[];
   misfireSpans: MisfireSpan[];
   showMisfire: boolean;
+  zoomRange?: MisfireSpan;
 }
 
-export function LogChart({ column, colorIndex, times, values, misfireSpans, showMisfire }: LogChartProps) {
+export function LogChart({ column, colorIndex, times, values, misfireSpans, showMisfire, zoomRange }: LogChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<echarts.ECharts | null>(null);
 
@@ -112,12 +113,14 @@ export function LogChart({ column, colorIndex, times, values, misfireSpans, show
           axisPointer: { animation: false },
         },
         dataZoom: [
-          { type: 'inside', filterMode: 'none' },
+          { type: 'inside', filterMode: 'none', startValue: zoomRange?.startTime, endValue: zoomRange?.endTime },
           {
             type: 'slider',
             height: 20,
             bottom: 12,
             filterMode: 'none',
+            startValue: zoomRange?.startTime,
+            endValue: zoomRange?.endTime,
             backgroundColor: THEME.sliderBg,
             borderColor: THEME.border,
             fillerColor: THEME.sliderFiller,
@@ -165,7 +168,7 @@ export function LogChart({ column, colorIndex, times, values, misfireSpans, show
       },
       { notMerge: true },
     );
-  }, [column, colorIndex, times, values, misfireSpans, showMisfire]);
+  }, [column, colorIndex, times, values, misfireSpans, showMisfire, zoomRange]);
 
   return <div className="log-chart" ref={containerRef} />;
 }

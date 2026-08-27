@@ -17,6 +17,7 @@ function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [log, setLog] = useState<ParsedLog | null>(null);
   const [showMisfire, setShowMisfire] = useState(true);
+  const [selectedMisfireIndex, setSelectedMisfireIndex] = useState<number | null>(null);
   const [selectedColumnKeys, setSelectedColumnKeys] = useState<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<'stacked' | 'combined'>('stacked');
   const [scaleMode, setScaleMode] = useState<CombinedScaleMode>('normalized');
@@ -70,6 +71,21 @@ function App() {
     }));
   }, [log, timeScale]);
 
+  const zoomRange = useMemo(() => {
+    if (selectedMisfireIndex === null || !misfireSpans[selectedMisfireIndex] || times.length === 0) {
+      return undefined;
+    }
+
+    const span = misfireSpans[selectedMisfireIndex];
+    const dataStart = times[0];
+    const dataEnd = times[times.length - 1];
+    const padding = Math.max((span.endTime - span.startTime) * 0.25, (dataEnd - dataStart) * 0.01);
+    return {
+      startTime: Math.max(dataStart, span.startTime - padding),
+      endTime: Math.min(dataEnd, span.endTime + padding),
+    };
+  }, [misfireSpans, selectedMisfireIndex, times]);
+
   const handleLoad = (fileName: string, csvText: string) => {
     try {
       const parsedLog = parseForscanCsv(fileName, csvText);
@@ -77,6 +93,7 @@ function App() {
       setSelectedColumnKeys(
         new Set(parsedLog.columns.filter((column) => column.isNumeric && column.key !== parsedLog.timeKey).map((column) => column.key)),
       );
+      setSelectedMisfireIndex(null);
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to parse CSV file');
@@ -118,6 +135,7 @@ function App() {
     setPage('home');
     setLog(null);
     setShowMisfire(true);
+    setSelectedMisfireIndex(null);
     setSelectedColumnKeys(new Set());
     setViewMode('stacked');
     setError(null);
@@ -198,14 +216,33 @@ function App() {
                 onChange={setSelectedColumnKeys}
               />
               {log.misfireSpans.length > 0 && (
-                <label className="app__misfire-toggle">
-                  <input
-                    type="checkbox"
-                    checked={showMisfire}
-                    onChange={(e) => setShowMisfire(e.target.checked)}
-                  />
-                  Highlight misfire spans ({log.misfireSpans.length})
-                </label>
+                <>
+                  <label className="app__misfire-select">
+                    Zoom to misfire
+                    <select
+                      value={selectedMisfireIndex ?? ''}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        setSelectedMisfireIndex(value === '' ? null : Number(value));
+                      }}
+                    >
+                      <option value="">All data</option>
+                      {log.misfireSpans.map((_, index) => (
+                        <option key={index} value={index}>
+                          {index + 1}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="app__misfire-toggle">
+                    <input
+                      type="checkbox"
+                      checked={showMisfire}
+                      onChange={(e) => setShowMisfire(e.target.checked)}
+                    />
+                    Highlight misfire spans ({log.misfireSpans.length})
+                  </label>
+                </>
               )}
             </div>
           </div>
@@ -221,6 +258,7 @@ function App() {
               misfireSpans={misfireSpans}
               showMisfire={showMisfire}
               scaleMode={scaleMode}
+              zoomRange={zoomRange}
             />
           ) : (
             <div className="app__chart-stack">
@@ -233,6 +271,7 @@ function App() {
                   values={valuesByKey[col.key]}
                   misfireSpans={misfireSpans}
                   showMisfire={showMisfire}
+                  zoomRange={zoomRange}
                 />
               ))}
             </div>

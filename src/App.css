@@ -230,6 +230,21 @@
   accent-color: var(--danger);
 }
 
+.app__misfire-select {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.app__misfire-select select {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.35rem 0.5rem;
+  background: var(--surface-raised);
+  color: var(--text);
+  font: inherit;
+}
+
 .app__chart-stack {
   display: flex;
   flex-direction: column;

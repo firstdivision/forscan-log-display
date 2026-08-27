@@ -13,6 +13,7 @@ interface CombinedChartProps {
   misfireSpans: MisfireSpan[];
   showMisfire: boolean;
   scaleMode: CombinedScaleMode;
+  zoomRange?: MisfireSpan;
 }
 
 interface TooltipParam {
@@ -29,6 +30,7 @@ export function CombinedChart({
   misfireSpans,
   showMisfire,
   scaleMode,
+  zoomRange,
 }: CombinedChartProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -214,12 +216,14 @@ export function CombinedChart({
           axisPointer: { show: false },
         },
         dataZoom: [
-          { type: 'inside', filterMode: 'none' },
+          { type: 'inside', filterMode: 'none', startValue: zoomRange?.startTime, endValue: zoomRange?.endTime },
           {
             type: 'slider',
             height: 20,
             bottom: 12,
             filterMode: 'none',
+            startValue: zoomRange?.startTime,
+            endValue: zoomRange?.endTime,
             backgroundColor: THEME.sliderBg,
             borderColor: THEME.border,
             fillerColor: THEME.sliderFiller,
@@ -234,7 +238,7 @@ export function CombinedChart({
       },
       { notMerge: true },
     );
-  }, [columns, times, valuesByKey, misfireSpans, showMisfire, scaleMode]);
+  }, [columns, times, valuesByKey, misfireSpans, showMisfire, scaleMode, zoomRange]);
 
   return (
     <div className="combined-chart" ref={wrapperRef}>
