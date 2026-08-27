@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import * as echarts from 'echarts';
 import type { LogColumn, MisfireSpan } from '../types';
-import { CHART_GROUP_ID, FONT_FAMILY, SERIES_COLORS, THEME, formatSeconds } from '../chartTheme';
+import { CHART_GROUP_ID, FONT_FAMILY, THEME, formatSeconds, seriesColor } from '../chartTheme';
 
 interface LogChartProps {
   column: LogColumn;
@@ -41,7 +41,7 @@ export function LogChart({ column, colorIndex, times, values, misfireSpans, show
     const chart = chartRef.current;
     if (!chart) return;
 
-    const color = SERIES_COLORS[colorIndex % SERIES_COLORS.length];
+    const color = seriesColor(colorIndex);
     const markAreaData = showMisfire
       ? misfireSpans.map((span) => [{ xAxis: span.startTime }, { xAxis: span.endTime }])
       : [];

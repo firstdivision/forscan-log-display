@@ -29,6 +29,13 @@ export const SERIES_COLORS = [
   '#7ee787',
 ];
 
+/** Palette colour for a series; past the palette, spreads hues by the golden angle. */
+export function seriesColor(index: number): string {
+  if (index < SERIES_COLORS.length) return SERIES_COLORS[index];
+  const hue = ((index - SERIES_COLORS.length) * 137.508 + 20) % 360;
+  return `hsl(${hue.toFixed(1)}, 65%, 62%)`;
+}
+
 /** Formats a time value (already in seconds) as e.g. "45.3 s". */
 export function formatSeconds(value: number): string {
   if (!Number.isFinite(value)) return '—';
