@@ -8,6 +8,8 @@ import './App.css';
 const SAMPLE_FILES = [
   { label: 'Sample 1', path: 'data/sample1.csv' },
   { label: 'Sample 2', path: 'data/sample2.csv' },
+  { label: 'Sample 3', path: 'data/sample3.csv' },
+  { label: 'Sample 4', path: 'data/sample4.csv' },
 ];
 
 function App() {
