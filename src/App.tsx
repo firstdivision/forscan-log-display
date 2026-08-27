@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { LogLoader } from './components/LogLoader';
 import { LogChart } from './components/LogChart';
+import { FieldSelector } from './components/FieldSelector';
 import { parseForscanCsv } from './utils/parseCsv';
 import type { ParsedLog } from './types';
 import './App.css';
@@ -13,6 +14,7 @@ const SAMPLE_FILES = [
 function App() {
   const [log, setLog] = useState<ParsedLog | null>(null);
   const [showMisfire, setShowMisfire] = useState(true);
+  const [selectedColumnKeys, setSelectedColumnKeys] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const [isDraggingOverApp, setIsDraggingOverApp] = useState(false);
 
@@ -20,6 +22,11 @@ function App() {
     if (!log) return [];
     return log.columns.filter((c) => c.isNumeric && c.key !== log.timeKey);
   }, [log]);
+
+  const displayedColumns = useMemo(
+    () => chartColumns.filter((column) => selectedColumnKeys.has(column.key)),
+    [chartColumns, selectedColumnKeys],
+  );
 
   // ForScan logs time in ms; charts display seconds.
   const timeScale = useMemo(() => {
@@ -42,7 +49,11 @@ function App() {
 
   const handleLoad = (fileName: string, csvText: string) => {
     try {
-      setLog(parseForscanCsv(fileName, csvText));
+      const parsedLog = parseForscanCsv(fileName, csvText);
+      setLog(parsedLog);
+      setSelectedColumnKeys(
+        new Set(parsedLog.columns.filter((column) => column.isNumeric && column.key !== parsedLog.timeKey).map((column) => column.key)),
+      );
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to parse CSV file');
@@ -97,21 +108,29 @@ function App() {
         <>
           <div className="app__toolbar">
             <span>
-              <strong>{log.fileName}</strong> · {log.rows.length} rows · {chartColumns.length} charted columns
+              <strong>{log.fileName}</strong> · {log.rows.length} rows · {displayedColumns.length} of{' '}
+              {chartColumns.length} fields displayed
             </span>
-            {log.misfireSpans.length > 0 && (
-              <label className="app__misfire-toggle">
-                <input
-                  type="checkbox"
-                  checked={showMisfire}
-                  onChange={(e) => setShowMisfire(e.target.checked)}
-                />
-                Highlight misfire spans ({log.misfireSpans.length})
-              </label>
-            )}
+            <div className="app__toolbar-controls">
+              <FieldSelector
+                columns={chartColumns}
+                selectedKeys={selectedColumnKeys}
+                onChange={setSelectedColumnKeys}
+              />
+              {log.misfireSpans.length > 0 && (
+                <label className="app__misfire-toggle">
+                  <input
+                    type="checkbox"
+                    checked={showMisfire}
+                    onChange={(e) => setShowMisfire(e.target.checked)}
+                  />
+                  Highlight misfire spans ({log.misfireSpans.length})
+                </label>
+              )}
+            </div>
           </div>
           <div className="app__chart-stack">
-            {chartColumns.map((col, i) => (
+            {displayedColumns.map((col, i) => (
               <LogChart
                 key={col.key}
                 column={col}
@@ -122,6 +141,9 @@ function App() {
                 showMisfire={showMisfire}
               />
             ))}
+            {displayedColumns.length === 0 && (
+              <div className="app__no-fields">No fields selected. Use the Fields menu to choose charts to display.</div>
+            )}
           </div>
         </>
       )}
