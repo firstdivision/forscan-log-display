@@ -83,6 +83,17 @@
   line-height: 1.5;
 }
 
+.app__header-tagline a,
+.app__about-card a:not(.app__about-back) {
+  color: var(--accent);
+  text-underline-offset: 0.2em;
+}
+
+.app__header-tagline a:hover,
+.app__about-card a:not(.app__about-back):hover {
+  text-decoration-thickness: 2px;
+}
+
 .app__toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -341,4 +352,52 @@
 .app__empty-dropzone:focus-visible {
   border-color: var(--accent);
   color: var(--accent);
+}
+
+.app__about {
+  display: grid;
+  place-items: start center;
+  padding: clamp(1rem, 4vw, 3rem) 0;
+}
+
+.app__about-card {
+  width: min(100%, 760px);
+  box-sizing: border-box;
+  padding: clamp(1.5rem, 5vw, 3rem);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+.app__about-card h2 {
+  margin: 0;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  line-height: 1.1;
+}
+
+.app__about-card h3 {
+  margin: 1.75rem 0 0;
+  font-size: 1.1rem;
+}
+
+.app__about-card p:not(.app__eyebrow) {
+  margin: 0.75rem 0 0;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+.app__about-back {
+  display: inline-block;
+  margin-top: 2rem;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 0.7rem 1rem;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.app__about-back:hover,
+.app__about-back:focus-visible {
+  background: rgba(88, 166, 255, 0.1);
 }

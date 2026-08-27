@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { LogChart } from './components/LogChart';
 import { FieldSelector } from './components/FieldSelector';
 import { parseForscanCsv } from './utils/parseCsv';
@@ -19,6 +19,15 @@ function App() {
   const [selectedColumnKeys, setSelectedColumnKeys] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const [isDraggingOverApp, setIsDraggingOverApp] = useState(false);
+  const [page, setPage] = useState<'home' | 'about'>(() =>
+    window.location.hash === '#about' ? 'about' : 'home',
+  );
+
+  useEffect(() => {
+    const handleHashChange = () => setPage(window.location.hash === '#about' ? 'about' : 'home');
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   const chartColumns = useMemo(() => {
     if (!log) return [];
@@ -93,6 +102,8 @@ function App() {
   };
 
   const resetApp = () => {
+    window.location.hash = '';
+    setPage('home');
     setLog(null);
     setShowMisfire(true);
     setSelectedColumnKeys(new Set());
@@ -125,12 +136,14 @@ function App() {
             </button>
           </h1>
         </div>
-        <p className="app__header-tagline">Turn ForScan CSV logs into clear, interactive charts.</p>
+        <p className="app__header-tagline">
+          Turn ForScan CSV logs into clear, interactive charts. <a href="#about">About</a>
+        </p>
       </header>
 
-      {error && <p className="app__error">{error}</p>}
+      {page === 'home' && error && <p className="app__error">{error}</p>}
 
-      {log && (
+      {page === 'home' && log && (
         <>
           <div className="app__toolbar">
             <span>
@@ -174,7 +187,7 @@ function App() {
         </>
       )}
 
-      {!log && (
+      {page === 'home' && !log && (
         <div className={`app__empty${isDraggingOverApp ? ' app__empty--active' : ''}`}>
           <div className="app__empty-card">
             <p className="app__eyebrow">Start here</p>
@@ -216,6 +229,39 @@ function App() {
             </button>
           </div>
         </div>
+      )}
+
+      {page === 'about' && (
+        <main className="app__about">
+          <div className="app__about-card">
+            <p className="app__eyebrow">About</p>
+            <h2>A clearer look at your ForScan logs</h2>
+            <p>
+              ForScan Log Display turns a CSV diagnostic log into interactive charts, making it easier to see
+              how your vehicle's readings change over time. Everything happens in your browser—there is no
+              account to create and your log is not uploaded to a server.
+            </p>
+
+            <h3>How to use it</h3>
+            <p>
+              Start with one of the sample logs, or choose your own ForScan CSV file. You can also drag a CSV
+              anywhere onto the home page. Once it loads, use the Fields menu to show or hide readings and
+              hover over a chart to inspect individual values. If the log contains misfire information, you can
+              highlight those periods on the charts too.
+            </p>
+
+            <h3>About ForScan</h3>
+            <p>
+              ForScan is vehicle-diagnostic software designed especially for Ford, Mazda, Lincoln, and Mercury
+              vehicles. Visit the <a href="https://forscan.org/">official ForScan website</a> to learn more about
+              the software and supported adapters.
+            </p>
+
+            <a className="app__about-back" href="#">
+              {log ? `Back to ${log.fileName}` : 'Back to the home page'}
+            </a>
+          </div>
+        </main>
       )}
     </div>
   );
