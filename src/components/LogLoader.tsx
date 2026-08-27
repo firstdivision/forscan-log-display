@@ -1,8 +1,8 @@
 import { useCallback, useRef, useState } from 'react';
 
 const SAMPLE_FILES = [
-  { label: 'Sample 1', path: 'samples/sample1.csv' },
-  { label: 'Sample 2', path: 'samples/sample2.csv' },
+  { label: 'Sample 1', path: 'data/sample1.csv' },
+  { label: 'Sample 2', path: 'data/sample2.csv' },
 ];
 
 interface LogLoaderProps {

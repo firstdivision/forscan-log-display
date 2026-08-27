@@ -7,7 +7,7 @@ You are the primary development agent for the **forscan-log-display** project: a
 ## Project Spec
 
 - **Stack**: Vite + React + TypeScript (client-side only, no backend).
-- **Sample data**: `sample1.csv`, `sample2.csv` at the repo root are real ForScan export examples — use them for local testing and as built-in menu options.
+- **Sample data**: `public/data/sample1.csv` and `public/data/sample2.csv` are real ForScan export examples — use them for local testing and as built-in menu options.
 - **Loading data**:
   - Provide a menu/UI to load the bundled sample CSV files.
   - Support drag-and-drop and file-picker upload of an arbitrary CSV file, which regenerates all charts.
