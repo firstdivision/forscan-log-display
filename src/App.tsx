@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { LogLoader } from './components/LogLoader';
 import { LogChart } from './components/LogChart';
 import { FieldSelector } from './components/FieldSelector';
 import { parseForscanCsv } from './utils/parseCsv';
@@ -81,6 +80,14 @@ function App() {
     }
   };
 
+  const resetApp = () => {
+    setLog(null);
+    setShowMisfire(true);
+    setSelectedColumnKeys(new Set());
+    setError(null);
+    setIsDraggingOverApp(false);
+  };
+
   return (
     <div
       className={`app${isDraggingOverApp ? ' app--dragging' : ''}`}
@@ -98,8 +105,15 @@ function App() {
       }}
     >
       <header className="app__header">
-        <h1>ForScan Log Display</h1>
-        <LogLoader onLoad={handleLoad} />
+        <div>
+          <p className="app__header-eyebrow">Vehicle diagnostics</p>
+          <h1>
+            <button type="button" onClick={resetApp} aria-label="Return to the ForScan Log Display start page">
+              ForScan Log Display
+            </button>
+          </h1>
+        </div>
+        <p className="app__header-tagline">Turn ForScan CSV logs into clear, interactive charts.</p>
       </header>
 
       {error && <p className="app__error">{error}</p>}
